@@ -1,0 +1,11 @@
+// Initialization (1st time)
+>> git init
+>> git remote add origin [address]
+>> git stage .
+>> git push -u origin master
+
+
+// Following
+>> git add .
+>> git commit -m [message]
+>> git push
