@@ -5,7 +5,12 @@
 >> git push -u origin master
 
 
-// Following
+// Upload
 >> git add .
 >> git commit -m [message]
 >> git push
+
+// Clone
+( Access the folder to clone in terminal )
+>> git init
+>> git clone [address]
