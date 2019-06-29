@@ -1,0 +1,3 @@
+
+world = {}
+print(world)
