@@ -22,11 +22,13 @@ icons = {
     "Monster": "M"
 }
 message = [
-    "You’ve just picked up a key!",
-    "Congrats, you’ve just escaped the dungeon!",
-    "You can't exit, please acquire the key(s) first!",
+    "Key collected!",
+    "Dungeon escaped!",
+    "Missing key!",
     "Victory!",
-    "U died...",
+    "You died!",
+    "Item collected!",
+    "Escaped!",
 ]
 
 playerData = {
@@ -79,6 +81,12 @@ levelsData = [
     },
     {
         "NeededKeys": 3,
+        "Monsters": 2,
+        "Items": 2,
+        "ItemType": "Stats",
+    },
+    {
+        "NeededKeys": 3,
         "Monsters": 1,
         "Items": 1,
         "ItemType": "Equipments",
@@ -125,9 +133,13 @@ level = -1
 messageID = -1
 gameOver = False
 inBattle = False
+displayBag = False
+beforeBattle = {"X": -1, "Y": -1}
 
 curHealth = 8
 
+def calChance(chance, total = 100):
+    return ((random.randrange(total) + 1) <= chance)
 
 def quickCoord():
     return {
@@ -311,13 +323,13 @@ def DisplayBattle(noChoices = False):
         print("\nPlayer: ", end = "")
         bar(curHealth / health)
         print("  [", end = "")
-        print(curHealth, "/", health, end = "]\n\n")
+        print("%.0f" % curHealth, "/", health, end = "]\n\n")
 
         if (not noChoices):
             quickSelect(0)
             print("Attack")
             quickSelect(1)
-            print("Guard")
+            print("Stat")
             quickSelect(2)
             print("Bag")
             quickSelect(3)
@@ -378,6 +390,7 @@ def Logic():
     global inBattle, battleMonster, monsterCpy
     global curHealth, attack, defend
     global menu, option, enter, menuNav
+    global beforeBattle
 
     if (inBattle): # Battle Logic
         # Bound Option
@@ -389,24 +402,73 @@ def Logic():
         if (enter):
             if (menu == 0):
                 if (option == 0):
-                    battleMonster["Health"] -= max([attack - battleMonster["Defend"], 1])
-
                     DisplayBattle(True)
-                    time.sleep(.4)
 
+                    playerMissed = calChance(battleMonster["MissChance"])
+                    monsterMissed = calChance(battleMonster["HitChance"])
+
+                    if (not playerMissed):
+                        battleMonster["Health"] -= max([attack - battleMonster["Defend"], 1])
+                    
+                    DisplayBattle(True)
+                    if (playerMissed):
+                        print("  You misssed!")
+                    time.sleep(.4)
+                    DisplayBattle(True)
+
+                    if (battleMonster["Health"] > 0 and (not monsterMissed)):
+                        curHealth -= max(battleMonster["Damage"] - defend, 1)
+                    if (monsterMissed):
+                        print("  It missed!")
                     if (battleMonster["Health"] > 0):
-                        curHealth -= max([battleMonster["Damage"] - defend, 1])
-                    showMes(3)
+                        time.sleep(.4)
+                elif (option == 1):
+                    DisplayBattle(True)
+                    monsterMissed = calChance(battleMonster["HitChance"])
+
+                    if (not monsterMissed):
+                        print("  (This is a bad idea)")
+                        curHealth -= max(battleMonster["Damage"] - defend * 1.5, .5)
+                    else:
+                        print("  It missed!")
+
+                    time.sleep(.4)
+                    DisplayBattle(True)
+                elif (option == 3):
+                    runChance = calChance(battleMonster["RunChance"])
+                    DisplayBattle(True)
+                    if (runChance): # Yeet
+                        print("  Escaped!")
+                        inBattle = False
+                        player = beforeBattle
+                        showMes(6)
+                    else:
+                        print("  You failed to escape!")
+
+                        monsterMissed = calChance(battleMonster["HitChance"])
+
+                        if (not monsterMissed):
+                            curHealth -= max(battleMonster["Damage"] - defend * 1.5, .5)
+                        else:
+                            print("  It missed!")
+
+                        time.sleep(.4)
+                        DisplayBattle(True)
+                elif (option == 2):
+                    menu = 1
+
+                    
         
-        if (curHealth <= 0):
+        if (curHealth <= 0): # player dies
             print("...ded...")
             input()
             gameOver = True
-        if (battleMonster["Health"] <= 0):
-            for monster in monsters:
+        if (battleMonster["Health"] <= 0): # monster dies
+            for monster in monsters: 
                 if (player["X"] == monster["X"] and player["Y"] == monster["Y"] and (not monster["Defeated"])):
                     monster["Defeated"] = True
                     inBattle = False
+                    showMes(3)
                     break
     else:
         # Bound Player
@@ -432,6 +494,7 @@ def Logic():
             player = last
 
         # Init Battle!
+        beforeBattle = last
         for monster in monsters:
             if (player["X"] == monster["X"] and player["Y"] == monster["Y"] and (not monster["Defeated"])):
                 inBattle = True
