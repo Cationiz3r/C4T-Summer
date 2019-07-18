@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>?</title>
+    </head>
+    <body style="background-color: black">
+        <script>
+            var lastDownTarget, canvas;
+            canvas = document.getElementById('canvas');
+
+            document.addEventListener('mousedown', function(event) {
+                lastDownTarget = event.target;
+                console.log('mousedown');
+            }, false);
+            document.addEventListener('keydown', function(event) {
+                //if(lastDownTarget == canvas) {
+                    console.log('keydown');
+                //}
+            }, false);
+
+        </script>
+        <canvas id="canvas" tabindex="1" style="background-color: white; width: 320px; height: 180px">
+
+        </canvas>
+    </body>
+</html>
